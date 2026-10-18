@@ -101,21 +101,24 @@ float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233)))*43758.5453); }
 float ss(float a, float b, float x){ float t = clamp((x - a) / (b - a), 0.0, 1.0); return t * t * (3.0 - 2.0 * t); }
 void main(){
   vec2 uv = vUv * vec2(6.0, 8.0);
-  float drops = 0.0;
+  // rain on the pane: dim refracting beads with a small catch-light each, and wet runs below them
+  float drops = 0.0, hi = 0.0;
   for(int L=0; L<2; L++){
     vec2 g = uv * (1.0 + float(L)*1.7) + vec2(0.0, uTime*(0.08 + float(L)*0.05));
     vec2 id = floor(g); vec2 f = fract(g) - 0.5;
     float r = h(id + float(L)*7.0);
     vec2 o = vec2(r - 0.5, fract(r*13.0) - 0.5) * 0.6;
-    float d = length((f - o) * vec2(1.0, 0.7));
-    float s = mix(0.06, 0.16, fract(r*31.0));
-    drops += (1.0 - ss(s*0.6, s, d)) * step(0.45, fract(r*71.0));
-    float trail = (1.0 - ss(0.0, 0.02, abs(f.x - o.x))) * ss(o.y, 0.5, f.y) * 0.3 * step(0.6, fract(r*71.0));
+    vec2 q = (f - o) * vec2(1.0, 0.7);
+    float s = mix(0.05, 0.13, fract(r*31.0));
+    float on = step(0.45, fract(r*71.0));
+    drops += (1.0 - ss(s*0.6, s, length(q))) * on * 0.45;
+    hi += (1.0 - ss(0.0, s*0.32, length(q - vec2(-0.32, 0.38)*s))) * on;
+    float trail = (1.0 - ss(0.0, 0.016, abs(f.x - o.x))) * ss(o.y, 0.5, f.y) * 0.22 * step(0.6, fract(r*71.0));
     drops += trail;
   }
-  drops *= uRain;
-  vec3 col = uTint * (0.04 + drops * 0.5);
-  float a = 0.06 + drops * 0.45;
+  drops *= uRain; hi *= uRain;
+  vec3 col = uTint * (0.04 + drops * 0.4) + vec3(1.0, 0.9, 0.75) * hi * 0.55;
+  float a = 0.06 + drops * 0.4 + hi * 0.4;
   gl_FragColor = vec4(col * a, a);
 }`;
 

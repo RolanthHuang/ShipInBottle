@@ -284,6 +284,7 @@ export function makeShip(tex) {
   const hullMat = addCaustics(new THREE.MeshStandardMaterial({ map: tex.hull, normalMap: tex.hull_n, normalScale: new THREE.Vector2(0.6, 0.6), roughnessMap: tex.hull_orm, metalnessMap: tex.hull_orm, aoMap: tex.hull_orm, roughness: 1, metalness: 1 }), 0.8);
   [tex.hull, tex.hull_n, tex.hull_orm].forEach(t => { t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; });
   const hull = new THREE.Mesh(hullGeometry(), hullMat); hull.castShadow = true; hull.receiveShadow = true; ship.add(hull);
+  ud.hullMat = hullMat;
   const st = sternCanvas();
   const sternMat = new THREE.MeshStandardMaterial({ map: toTex(st.col, { wrap: false }), emissiveMap: toTex(st.glow, { wrap: false }), emissive: 0xffa040, emissiveIntensity: 1.5, roughness: 0.6, side: THREE.DoubleSide });
   const transom = new THREE.Mesh(transomGeometry(), sternMat); ship.add(transom);

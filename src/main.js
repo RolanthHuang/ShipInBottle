@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { B, D, FLOOR, U, LAYER, clamp, lerp, smooth, innerR, enableLayers, mergeStatic } from './common.js';
 import { loadAssets, fontsReady } from './assets.js';
-import { Sea, makeWater } from './water.js';
+import { Sea, makeWater, addWaterline } from './water.js';
 import { makeBottle, makeStopper } from './glass.js';
 import { makeShip } from './ship.js';
 import { makeIsland } from './island.js';
@@ -159,6 +159,9 @@ async function main() {
   const ship = makeShip(tex); bottle.add(ship);
   const S = ship.userData;
   const rowboat = L.rowboat; bottle.add(rowboat);
+  const W2B = { value: new THREE.Matrix4() };
+  addWaterline(S.hullMat, waterMats[0].uniforms, W2B);
+  { const rbHull = rowboat.children.find(m => m.isMesh); if (rbHull) addWaterline(rbHull.material, waterMats[0].uniforms, W2B, { foam: 0.45 }); }
   mergeLog.push(mergeStatic(ship, [...S.sails.map(x => x.mesh), ...S.flags.map(f => f.mesh), S.captain, S.lookout, S.sailor, S.cat, S.figurehead, S.bell, S.wheel, S.rudder, ...S.lanterns.map(l => l.mesh)]));
   mergeLog.push(mergeStatic(L.lighthouse, [L.beamGroup, L.lensG, L.lens, L.vane]));
   mergeLog.push(mergeStatic(L.cottage));
@@ -231,7 +234,7 @@ async function main() {
     hatT: 0, bellT: 0, luffT: 0, heelV: 0, lookT: 0, waveT: 0, catT: 0, keeperT: 0, figT: 0,
     found: new Set(store.get('found', [])), intro: params.has('skip') ? 'done' : 'wait', introT: 0, uiHidden: false, scope: null,
   };
-  const ship$ = { x: 0.04, z: 0.08, vx: 0, vz: 0, pitch: 0, roll: 0, heave: 0, pv: 0, rv: 0, hv: 0 };
+  const ship$ = { x: 0.04, z: 0.08, vx: 0, vz: 0, pitch: 0, roll: 0, heave: sea.height(0.04, 0.08) + 0.004, pv: 0, rv: 0, hv: 0 }; // start afloat, not dropping in
   const rb$ = { kick: 0 }; const mini$ = { a: 0, boost: 0 };
 
   const TOD = [
@@ -620,7 +623,7 @@ async function main() {
 
     updateIntro(dt); updateTOD(dt);
     rig.surfaceY = (x, z) => sea.height(x, z);
-    rig.bottleInv.copy(bottle.matrixWorld).invert();
+    rig.bottleInv.copy(bottle.matrixWorld).invert(); W2B.value.copy(rig.bottleInv);
     rig.update(dt);
 
     // bottle rocking + shake

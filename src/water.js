@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { B, U, GLSL_UTIL, LAYER, innerR, clamp } from './common.js';
+import { B, U, GLSL_UTIL, LAYER, innerR, clamp, patchMaterial } from './common.js';
 
 const G_EFF = 1.7;
 const WAVES = [
@@ -73,7 +73,7 @@ export class Sea {
   }
 }
 
-const WAVE_GLSL = /* glsl */`
+export const WAVE_GLSL = /* glsl */`
 uniform vec4 uWaves[5];
 uniform vec4 uRip[8];
 uniform float uSeaT;
@@ -281,13 +281,15 @@ void main(){
   float spb = pow(max(dot(N,Hb),0.), 200.) * uBeamI * 2.0 * max(dot(normalize(vWP - uBeamPos), uBeamDir), 0.);
   if(uSide < 0.5 && !fromBelow) col += uLampCol*sp + uMoonCol*spm + vec3(1.,.85,.6)*spb;
 
-  float foam = 0.;
+  float foam = 0.; float cfoam = 0.;
   if(uSide < 0.5){
-    float inter = 1. - ss(0.0, 0.03, tScene0);
+    float inter = 1. - ss(0.0, 0.034, tScene0);
     float men = 1. - ss(0.0, 0.02, rr - radial);
     float crest = ss(0.8, 1.15, vCrest) * ss(0.012, 0.04, uAmp);
     float fn = fbm2(lp.xz*38. + vec2(uTime*0.6, -uTime*0.4));
     foam = clamp(inter*1.1 + men*0.6 + crest, 0., 1.) * ss(0.38, 0.66, fn + 0.25*inter);
+    // contact foam (hull, shore, pilings) is white water: let it catch the lamp like the sails do
+    cfoam = inter * ss(0.3, 0.62, fn + 0.3*inter);
   } else {
     float line = 1. - ss(0.0, 0.012, sy - lp.y);
     col += uAmbW * line * 0.35;
@@ -296,6 +298,8 @@ void main(){
   }
   vec3 foamCol = (uAmbW*0.9 + uLampCol*0.06) * 1.2;
   col = mix(col, foamCol, foam*0.85);
+  vec3 Lf = normalize(uLampPos - vWP);
+  col += uLampCol * cfoam * 0.42 * (0.3 + 0.7*max(dot(N, Lf), 0.));
   col += vec3(0.15, 0.7, 1.0) * foam * uNight * 0.35;
   col += vec3(0.7, 0.75, 1.0) * uFlash * 0.25;
   gl_FragColor = vec4(col, 1.0);
@@ -334,4 +338,33 @@ export function makeWater(sea, shared, res = [300, 140]) {
   group.userData.mats = [surfMat, volMat];
   group.userData.surf = surf;
   return group;
+}
+
+// A wave-following waterline for floating hulls: the fragment is moved into bottle space and compared
+// with the same sea surface the water shader draws. Below it the hull is cooler and dimmer (the light
+// reached it through water); just above it is wet; at the contact there is a thin, broken foam line.
+export function addWaterline(mat, waterUniforms, w2b, { tint = [0.6, 0.76, 0.8], foam = 0.6 } = {}) {
+  const t = tint.map(v => v.toFixed(3)).join(', ');
+  return patchMaterial(mat, 'wline' + foam, (sh) => {
+    for (const k of ['uWaves', 'uRip', 'uSeaT', 'uN', 'uLevel', 'uCx']) sh.uniforms[k] = waterUniforms[k];
+    sh.uniforms.uW2B = w2b; sh.uniforms.uWLT = U.time;
+    sh.vertexShader = sh.vertexShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vWLw;')
+      .replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\nvWLw = (modelMatrix * vec4(transformed, 1.0)).xyz;');
+    sh.fragmentShader = sh.fragmentShader
+      .replace('#include <common>', '#include <common>\nvarying vec3 vWLw; uniform mat4 uW2B; uniform float uWLT;\n' + WAVE_GLSL +
+        '\nfloat ssWL(float a, float b, float x){ float q = clamp((x - a) / (b - a), 0.0, 1.0); return q * q * (3.0 - 2.0 * q); }\n')
+      .replace('#include <opaque_fragment>', `
+        vec3 pWL = (uW2B * vec4(vWLw, 1.0)).xyz;
+        float dWL = pWL.y - surfAt(pWL.xz);
+        float subWL = 1.0 - ssWL(-0.005, 0.001, dWL);
+        outgoingLight *= mix(vec3(1.0), vec3(${t}), subWL);
+        float wetWL = (1.0 - ssWL(0.0, 0.016, dWL)) * (1.0 - subWL);
+        outgoingLight *= 1.0 - 0.32 * wetWL;
+        float nWL = ssWL(0.15, 0.85, 0.5 + 0.5 * sin(pWL.x * 83.0 + uWLT * 2.9) * sin(pWL.z * 61.0 + pWL.x * 29.0 - uWLT * 1.7));
+        float lineWL = exp(-dWL * dWL / (0.0019 * 0.0019)) * (0.35 + 0.65 * nWL);
+        float albWL = max(dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114)), 0.05);
+        outgoingLight = mix(outgoingLight, outgoingLight / albWL * 0.6, clamp(lineWL, 0.0, 1.0) * ${foam.toFixed(2)});
+        #include <opaque_fragment>`);
+  });
 }

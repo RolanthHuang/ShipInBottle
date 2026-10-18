@@ -9,7 +9,7 @@ export function makeStand(plaqueLines, tex) {
   const g = new THREE.Group();
   const { cx, rx, rz } = STAND;
   const woodMap = rep(tex.stand, 1.2, 1.0), woodN = rep(tex.stand_n, 1.2, 1.0);
-  const wood = new THREE.MeshPhysicalMaterial({ map: woodMap, normalMap: woodN, normalScale: new THREE.Vector2(0.35, 0.35), roughness: 0.42, clearcoat: 0.55, clearcoatRoughness: 0.22 });
+  const wood = new THREE.MeshPhysicalMaterial({ map: woodMap, normalMap: woodN, normalScale: new THREE.Vector2(0.35, 0.35), roughness: 0.55, clearcoat: 0.55, clearcoatRoughness: 0.12 });
   const woodSide = wood.clone(); woodSide.map = rep(tex.stand, 0.12, 1.0, Math.PI / 2); woodSide.normalMap = rep(tex.stand_n, 0.12, 1.0, Math.PI / 2);
   // molding profile [outward offset, y]
   const prof = [];

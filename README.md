@@ -53,7 +53,7 @@ https://rolanthhuang.github.io/ShipInBottle/?text=一路順風&sub=BON VOYAGE ·
 
 | | |
 |:-:|:-:|
-| ![帆船](screenshots/ship.jpg) | ![船尾：船長、舵輪和貓](screenshots/stern.jpg) |
+| ![帆船](screenshots/ship.jpg) | ![甲板視角：跟著船一起晃](screenshots/deck.jpg) |
 | ![燈塔與小島](screenshots/lighthouse.jpg) | ![暴風雨](screenshots/storm.jpg) |
 | ![清晨，窗格的影子落在桌上](screenshots/morning.jpg) | ![書房](screenshots/study.jpg) |
 
