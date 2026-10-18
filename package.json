@@ -1,0 +1,14 @@
+{
+  "name": "ship-in-bottle",
+  "version": "2.0.0",
+  "private": true,
+  "description": "拾光號 · 瓶中遠方 — a ship in a bottle, as one self-contained WebGL page",
+  "scripts": {
+    "build": "node build.mjs --min",
+    "build:dev": "node build.mjs --out=dist/index.html"
+  },
+  "dependencies": {
+    "esbuild": "^0.28.2",
+    "three": "^0.186.1"
+  }
+}

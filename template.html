@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>拾光號 · 瓶中遠方</title>
+<meta name="description" content="一艘封在綠玻璃瓶裡的雙桅帆船，連同燈塔、海豚與一小片會晃動的海。">
+<meta name="theme-color" content="#040302">
+<meta property="og:type" content="website">
+<meta property="og:title" content="拾光號 · 瓶中遠方">
+<meta property="og:description" content="一艘封在綠玻璃瓶裡的雙桅帆船，連同燈塔、海豚與一小片會晃動的海。可以 360° 轉著看、點東西、搖瓶子。">
+<meta property="og:url" content="https://rolanthhuang.github.io/ShipInBottle/">
+<meta property="og:image" content="https://rolanthhuang.github.io/ShipInBottle/screenshots/overview.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='29' fill='%237a1c14'/%3E%3Ccircle cx='32' cy='32' r='23' fill='none' stroke='%23c9604f' stroke-width='2'/%3E%3Cpath d='M31 14v26h-13z' fill='%23efe2c4'/%3E%3Cpath d='M34 18v22h11z' fill='%23efe2c4' opacity='.85'/%3E%3Cpath d='M16 43h33l-4 6H21z' fill='%23efe2c4'/%3E%3C/svg%3E">
+<style id="font-faces">/*__FONTS__*/</style>
+<style>
+:root{
+  --paper:#e6d7b8; --ink:#2b1d12; --ink-soft:#5a4532;
+  --wax:#7a1c14; --wax-hi:#a3352a; --lamp:#efe2c4; --lamp-dim:rgba(239,226,196,.64); --lamp-faint:rgba(239,226,196,.36);
+  --zh:"BV Serif","Noto Serif TC","Songti TC","PMingLiU",serif; --lat:"BV Garamond","Cormorant Garamond","Garamond",serif; --kai:"BV Kai","LXGW WenKai TC","Kaiti TC","DFKai-SB",serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#040302;overflow:hidden;color:var(--lamp);font-family:var(--zh);-webkit-font-smoothing:antialiased}
+canvas#c{position:fixed;inset:0;width:100vw;height:100vh;display:block;touch-action:none;outline:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:1px solid var(--lamp);outline-offset:3px}
+
+#label{position:fixed;left:clamp(16px,3vw,40px);top:clamp(16px,3vw,36px);width:min(300px,72vw);padding:18px 20px 16px;
+  background:var(--paper);color:var(--ink);transform:rotate(-.8deg);
+  box-shadow:0 1px 0 rgba(255,255,255,.25) inset,0 10px 30px rgba(0,0,0,.55),0 2px 4px rgba(0,0,0,.4);
+  background-image:radial-gradient(120% 90% at 30% 20%,rgba(255,250,235,.45),transparent 60%),radial-gradient(80% 60% at 90% 100%,rgba(120,80,40,.22),transparent 70%);
+  opacity:0;transition:opacity 1.2s ease .2s}
+#label::before{content:"";position:absolute;inset:6px;border:1px solid rgba(43,29,18,.35);pointer-events:none}
+#label .no{font-family:var(--lat);font-style:italic;font-size:15px;color:var(--ink-soft)}
+#label h1{font-weight:600;font-size:30px;letter-spacing:.12em;line-height:1.25;margin:2px 0 4px}
+#label h1 span{font-family:var(--lat);font-style:italic;font-weight:500;font-size:19px;letter-spacing:.02em;margin-left:.4em;color:var(--ink-soft)}
+#label p{font-size:13px;line-height:1.75;color:var(--ink-soft)}
+#label p em{font-family:var(--lat);font-size:14.5px}
+
+#views{position:fixed;right:clamp(16px,3vw,40px);top:clamp(18px,3vw,38px);display:flex;gap:2px;align-items:center;opacity:0;transition:opacity 1.2s ease .4s}
+#views button{font-size:14px;padding:6px 9px;color:var(--lamp-dim);letter-spacing:.06em;position:relative;text-shadow:0 1px 6px rgba(0,0,0,.85)}
+#views button:hover,#views button.on{color:var(--lamp)}
+#views button.on::after{content:"";position:absolute;left:50%;bottom:-2px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--wax-hi);box-shadow:0 0 6px rgba(163,53,42,.8)}
+#disc-btn{display:flex;align-items:center;gap:8px;margin-left:12px;padding:4px 4px 4px 10px;font-size:13px;color:var(--lamp-dim)}
+#disc-btn .seal{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#a3352a,#6a150f 60%,#4a0d09);color:#f3d9c4;font-family:var(--lat);font-size:12.5px;box-shadow:0 2px 6px rgba(0,0,0,.6),inset 0 -2px 3px rgba(0,0,0,.35)}
+
+#shade{position:fixed;left:0;right:0;bottom:0;height:200px;pointer-events:none;background:linear-gradient(to top,rgba(4,3,2,.62),transparent)}
+#dock{position:fixed;left:50%;bottom:clamp(14px,2.6vw,28px);transform:translateX(-50%);display:flex;align-items:flex-end;gap:clamp(16px,2.6vw,40px);opacity:0;transition:opacity 1.2s ease .6s;white-space:nowrap}
+.grp{display:flex;flex-direction:column;align-items:center;gap:6px}
+.grp .cap{font-family:var(--lat);font-style:italic;font-size:14px;color:var(--lamp-faint)}
+.opts{display:flex;gap:2px;height:44px;align-items:flex-end}
+.opts button{font-size:15px;padding:5px 9px;color:var(--lamp-dim);position:relative;text-shadow:0 1px 6px rgba(0,0,0,.85)}
+.opts button:hover,.opts button.on{color:var(--lamp)}
+.opts button.on::after{content:"";position:absolute;left:50%;bottom:-3px;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--wax-hi);box-shadow:0 0 6px rgba(163,53,42,.8)}
+.acts{display:flex;gap:2px;height:44px;align-items:flex-end}
+.acts button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 7px;color:var(--lamp-dim);font-size:12.5px;text-shadow:0 1px 6px rgba(0,0,0,.85);min-width:44px}
+.acts button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.2}
+.acts button:hover,.acts button.on{color:var(--lamp)}
+#btn-sound .off{display:block}#btn-sound .onI{display:none}
+#btn-sound.on .off{display:none}#btn-sound.on .onI{display:block}
+.rule{width:1px;align-self:stretch;background:linear-gradient(transparent,var(--lamp-faint),transparent)}
+
+#log{position:fixed;left:clamp(16px,3vw,40px);bottom:clamp(96px,11vh,120px);width:min(340px,40vw);opacity:0;transition:opacity 1.2s ease .8s;pointer-events:none}
+#log h2{font-family:var(--lat);font-style:italic;font-weight:500;font-size:17px;color:var(--lamp-faint);margin-bottom:6px}
+#log h2 span{font-family:var(--zh);font-style:normal;font-size:13px;margin-left:.5em}
+#log-entries .entry{display:flex;gap:10px;font-family:var(--kai);font-size:15px;line-height:1.6;color:var(--lamp-dim);opacity:0;transform:translateY(4px);transition:opacity .8s ease,transform .8s ease;text-shadow:0 1px 6px rgba(0,0,0,.9)}
+#log-entries .entry.in{opacity:1;transform:none}
+#log-entries .entry:nth-child(2){color:var(--lamp-faint)}
+#log-entries .entry:nth-child(3),#log-entries .entry:nth-child(4){color:rgba(239,226,196,.2)}
+#log-entries .t{font-family:var(--lat);font-style:italic;font-size:14px;flex:none;width:36px}
+
+#hint{position:fixed;left:50%;bottom:clamp(98px,12vh,126px);transform:translateX(-50%);font-size:13px;letter-spacing:.06em;color:var(--lamp-faint);text-shadow:0 1px 6px rgba(0,0,0,.9);opacity:0;transition:opacity 1s;pointer-events:none;white-space:nowrap}
+#hint b{font-weight:500;color:var(--lamp-dim)}
+#hint.in{opacity:1}
+
+body.ready #label,body.ready #views,body.ready #dock,body.ready #log{opacity:1}
+body.clean #label,body.clean #views,body.clean #dock,body.clean #log,body.clean #shade,body.clean #hint{opacity:0!important;pointer-events:none}
+#unhide{position:fixed;right:18px;bottom:18px;font-size:12.5px;color:var(--lamp-faint);display:none}
+body.clean #unhide{display:block}
+
+#tip{position:fixed;left:0;top:0;pointer-events:none;opacity:0;transition:opacity .2s;padding:7px 11px 8px;background:var(--paper);color:var(--ink);box-shadow:0 6px 18px rgba(0,0,0,.5);max-width:240px}
+#tip.in{opacity:1}
+#tip b{display:block;font-weight:600;font-size:14px;letter-spacing:.05em}
+#tip span{display:block;font-size:12px;color:var(--ink-soft);margin-top:1px}
+
+#toast{position:fixed;left:50%;top:clamp(70px,9vh,96px);transform:translate(-50%,-6px);opacity:0;text-align:center;pointer-events:none;font-size:17px;letter-spacing:.1em;color:var(--lamp);text-shadow:0 2px 12px rgba(0,0,0,.9)}
+#toast small{display:block;font-size:12px;letter-spacing:.04em;color:var(--lamp-faint);margin-bottom:2px}
+#toast.in{animation:toast 3.4s ease forwards}
+@keyframes toast{0%{opacity:0;transform:translate(-50%,-6px)}12%{opacity:1;transform:translate(-50%,0)}80%{opacity:1}100%{opacity:0}}
+#note{position:fixed;left:50%;top:50%;transform:translate(-50%,-46%) rotate(1.2deg);opacity:0;pointer-events:none;transition:opacity .6s,transform .6s;background:var(--paper);color:var(--ink);padding:26px 34px;text-align:left;line-height:1.95;font-family:var(--kai);font-size:18px;box-shadow:0 20px 50px rgba(0,0,0,.6);max-width:min(520px,88vw)}
+#note em{font-family:var(--lat);font-size:21px}
+#note.in{opacity:1;transform:translate(-50%,-50%) rotate(1.2deg);pointer-events:auto}
+
+#disc-panel{position:fixed;right:clamp(16px,3vw,40px);top:80px;width:min(310px,86vw);max-height:calc(100vh - 200px);overflow:auto;background:var(--paper);color:var(--ink);padding:18px 20px;box-shadow:0 16px 40px rgba(0,0,0,.6);transform:translateY(-6px) rotate(.6deg);opacity:0;pointer-events:none;transition:opacity .35s,transform .35s}
+#disc-panel.in{opacity:1;pointer-events:auto;transform:rotate(.6deg)}
+#disc-panel h3{font-weight:600;font-size:17px;letter-spacing:.08em}
+#disc-panel h3 small{font-family:var(--lat);font-style:italic;font-weight:400;font-size:15px;color:var(--ink-soft);margin-left:.5em}
+#disc-panel ul{list-style:none;margin-top:10px}
+#disc-panel li{display:flex;gap:8px;font-size:13.5px;line-height:1.95;color:var(--ink-soft);border-bottom:1px dotted rgba(43,29,18,.2)}
+#disc-panel li span{width:12px;flex:none;text-align:center}
+#disc-panel li.f{color:var(--ink)} #disc-panel li.f span{color:var(--wax)}
+#disc-panel li em{font-style:normal;opacity:.6}
+#disc-close{position:absolute;right:12px;top:10px;font-size:20px;color:var(--ink-soft)}
+
+#help{position:fixed;inset:0;display:grid;place-items:center;background:rgba(4,3,2,.5);opacity:0;pointer-events:none;transition:opacity .35s}
+#help.in{opacity:1;pointer-events:auto}
+#help .card{width:min(460px,90vw);background:var(--paper);color:var(--ink);padding:24px 28px 20px;box-shadow:0 24px 60px rgba(0,0,0,.7);transform:rotate(-.4deg)}
+#help h3{font-weight:600;font-size:19px;letter-spacing:.08em;margin-bottom:10px}
+#help dl{display:grid;grid-template-columns:auto 1fr;gap:6px 18px;font-size:14px;line-height:1.6}
+#help dt{color:var(--ink-soft);white-space:nowrap}
+#help .row{display:flex;justify-content:flex-end;margin-top:16px}
+#help .row button{padding:8px 16px;font-size:14px;background:var(--wax);color:#f3e2d0}
+
+#engrave{position:fixed;inset:0;display:grid;place-items:center;background:rgba(4,3,2,.55);opacity:0;pointer-events:none;transition:opacity .35s}
+#engrave.in{opacity:1;pointer-events:auto}
+#engrave .card{width:min(440px,90vw);background:var(--paper);color:var(--ink);padding:26px 28px 22px;box-shadow:0 24px 60px rgba(0,0,0,.7);transform:rotate(-.5deg)}
+#engrave h3{font-weight:600;font-size:20px;letter-spacing:.08em}
+#engrave p{font-size:13px;color:var(--ink-soft);margin:4px 0 16px;line-height:1.7}
+#engrave label{display:block;font-size:12.5px;color:var(--ink-soft);margin:10px 0 4px}
+#engrave input{width:100%;font:inherit;font-size:17px;padding:8px 2px;border:0;border-bottom:1px solid rgba(43,29,18,.45);background:transparent;color:var(--ink)}
+#engrave #eng2{font-family:var(--lat);font-style:italic}
+#engrave .row{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+#engrave .row button{padding:8px 16px;font-size:14px;letter-spacing:.08em}
+#eng-ok{background:var(--wax);color:#f3e2d0;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+#eng-cancel{color:var(--ink-soft)}
+
+#scope{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .6s;background:radial-gradient(circle at 50% 50%, transparent 0 min(34vw,34vh), rgba(4,3,2,.6) calc(min(34vw,34vh) + 6px), #040302 calc(min(34vw,34vh) + 26px))}
+#scope.in{opacity:1}
+#scope-exit{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);font-size:13px;color:var(--lamp-dim);opacity:0;pointer-events:none;transition:opacity .6s}
+#scope.in + #scope-exit{opacity:1;pointer-events:auto}
+
+#intro{position:fixed;inset:0;display:grid;place-items:center;text-align:center;transition:opacity 1.6s ease}
+#intro .gate{display:flex;flex-direction:column;align-items:center;gap:18px;transition:opacity 1s ease}
+#intro .gate h2{font-weight:500;font-size:clamp(26px,3.6vw,40px);letter-spacing:.32em;text-indent:.32em;color:var(--lamp);text-shadow:0 2px 20px rgba(0,0,0,.9)}
+#intro .gate p{font-family:var(--lat);font-style:italic;font-size:19px;color:var(--lamp-dim)}
+#intro .gate .btns{display:flex;gap:26px;margin-top:10px}
+#intro .gate button{font-size:15px;letter-spacing:.14em;padding:10px 4px;color:var(--lamp-dim);border-bottom:1px solid var(--lamp-faint)}
+#intro .gate button:hover{color:var(--lamp);border-color:var(--lamp)}
+#start-sound{color:var(--lamp)!important}
+#intro.playing{pointer-events:none}
+#intro.playing .gate{opacity:0}
+#intro .line{pointer-events:none;position:absolute;left:50%;top:58%;transform:translate(-50%,6px);width:90vw;opacity:0;transition:opacity 1.4s ease,transform 1.4s ease;font-size:clamp(18px,2.2vw,26px);letter-spacing:.2em;color:var(--lamp);text-shadow:0 2px 18px rgba(0,0,0,.95)}
+#intro .line small{display:block;font-family:var(--lat);font-style:italic;letter-spacing:.04em;font-size:.72em;color:var(--lamp-dim);margin-top:6px}
+#intro .line.in{opacity:1;transform:translate(-50%,0)}
+#intro #il3{top:auto;bottom:16vh}
+#skip{position:fixed;right:24px;bottom:22px;font-size:13px;color:var(--lamp-faint);pointer-events:auto;opacity:0;transition:opacity 1s}
+#intro.playing #skip{opacity:1}
+#intro.gone{opacity:0;pointer-events:none}
+#intro.gone #skip{pointer-events:none}
+
+#loading{position:fixed;inset:0;display:grid;place-items:center;background:#040302;transition:opacity 1s ease;z-index:5}
+#loading.gone{opacity:0;pointer-events:none}
+#loading .in{display:flex;flex-direction:column;align-items:center;gap:14px}
+#loading .bar{width:180px;height:1px;background:rgba(239,226,196,.15);overflow:hidden}
+#load-bar{display:block;height:100%;background:var(--lamp-dim);transform:scaleX(0);transform-origin:left;transition:transform .5s}
+#load-text{font-size:13px;color:var(--lamp-dim);letter-spacing:.12em}
+#fallback{position:fixed;inset:0;display:none;place-items:center;align-items:center;justify-content:center;background:#040302;z-index:9;text-align:center;padding:30px}
+#fallback p{max-width:420px;line-height:1.9;color:var(--lamp-dim)}
+
+@media (max-width:860px){
+  #log{display:none}
+  #label{width:230px;padding:14px 16px}
+  #label h1{font-size:24px} #label p{display:none}
+  #views{top:auto;bottom:122px;right:50%;transform:translateX(50%);flex-wrap:wrap;justify-content:center;width:96vw}
+  #dock{gap:12px;flex-wrap:wrap;justify-content:center;width:96vw}
+  .rule{display:none}
+  #hint{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition-duration:.01s!important;animation-duration:.01s!important}}
+</style>
+</head>
+<body>
+<canvas id="c" tabindex="0" aria-label="瓶中船三維場景：拖曳旋轉、滾輪縮放、右鍵平移、雙擊聚焦"></canvas>
+<div id="shade"></div>
+
+<aside id="label" aria-label="展品說明">
+  <div class="no">Curiosity No. 7</div>
+  <h1>拾光號<span>Halcyon</span></h1>
+  <p>一艘雙桅縱帆船，連同燈塔、守燈人、三隻海豚和一小片海，在一八八七年被封進這只綠玻璃瓶。<br><em>Sealed with wax, never opened.</em></p>
+</aside>
+
+<nav id="views" aria-label="視角">
+  <button data-view="sea" title="1">入海</button>
+  <button data-view="deck" title="2">甲板</button>
+  <button data-view="overview" title="3">全景</button>
+  <button data-view="ship" title="4">帆船</button>
+  <button data-view="lighthouse" title="5">燈塔</button>
+  <button data-view="back" title="6">背面</button>
+  <button data-view="study" title="7">書房</button>
+  <button id="disc-btn" aria-label="探索清單"><span id="disc-count">0</span><span class="seal">✦</span></button>
+</nav>
+
+<section id="disc-panel" aria-label="探索清單">
+  <button id="disc-close" aria-label="關閉">×</button>
+  <h3>瓶中的小祕密<small>found so far</small></h3>
+  <ul id="disc-list"></ul>
+</section>
+
+<section id="log" aria-live="polite">
+  <h2>Ship's log<span>航海日誌</span></h2>
+  <div id="log-entries"></div>
+</section>
+
+<div id="hint"><b>拖曳</b> 環繞　<b>滾輪</b> 往游標縮放　<b>右鍵</b> 平移　<b>雙擊</b> 聚焦細節　<b>Shift＋拖曳</b> 搖瓶</div>
+
+<div id="dock" role="toolbar" aria-label="控制">
+  <div class="grp"><span class="cap">wind</span>
+    <div class="opts"><button data-wind="0">平靜</button><button data-wind="1">微風</button><button data-wind="2">疾風</button><button data-wind="3">暴風雨</button></div>
+  </div>
+  <span class="rule"></span>
+  <div class="grp"><span class="cap">light</span>
+    <div class="opts"><button data-tod="0">晨</button><button data-tod="1">暮</button><button data-tod="2">夜</button></div>
+  </div>
+  <span class="rule"></span>
+  <div class="grp"><span class="cap">hands</span>
+    <div class="acts">
+      <button id="btn-shake" title="搖晃瓶子（S）"><svg viewBox="0 0 24 24"><path d="M4 12c2-3 4-3 6 0s4 3 6 0 4-3 4-3"/><path d="M4 16c2-3 4-3 6 0s4 3 6 0 4-3 4-3"/></svg>搖瓶</button>
+      <button id="btn-spin" title="慢慢環繞（R）"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v4h-4"/></svg>環轉</button>
+      <button id="btn-sound" title="聲音（M）"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><g class="onI"><path d="M16 9c1.5 1.5 1.5 4.5 0 6"/><path d="M18.5 6.5c3 3 3 8 0 11"/></g><g class="off"><path d="M16 9l5 6M21 9l-5 6"/></g></svg>聲音</button>
+      <button id="btn-shot" title="截圖（P）"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="1"/><circle cx="12" cy="13.5" r="3.6"/><path d="M8 7l1.5-2.5h5L16 7"/></svg>留影</button>
+      <button id="btn-hide" title="隱藏介面（H）"><svg viewBox="0 0 24 24"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/></svg>只看瓶</button>
+      <button id="btn-quality" title="畫質"><svg viewBox="0 0 24 24"><path d="M12 3l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5L4.8 8.3l5-.7z"/></svg><span id="q-label">高</span></button>
+      <button id="btn-help" title="操作說明（?）"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.7.3-1 .8-1 1.5V14"/><circle cx="12" cy="17" r=".6"/></svg>說明</button>
+    </div>
+  </div>
+</div>
+<button id="unhide" onclick="document.getElementById('btn-hide').click()">顯示介面（H）</button>
+
+<div id="tip" role="status"></div>
+<div id="toast"></div>
+<div id="note" role="dialog"></div>
+<div id="scope"></div><button id="scope-exit">放下望遠鏡（Esc）</button>
+
+<div id="help" role="dialog" aria-modal="true" aria-labelledby="help-title">
+  <div class="card">
+    <h3 id="help-title">怎麼看這只瓶子</h3>
+    <dl>
+      <dt>拖曳</dt><dd>繞著瓶子轉，三百六十度都可以</dd>
+      <dt>滾輪／雙指</dt><dd>往游標所在處靠近或退開</dd>
+      <dt>右鍵／雙指拖</dt><dd>平移視角</dd>
+      <dt>雙擊</dt><dd>把那個細節拉到眼前</dd>
+      <dt>單擊</dt><dd>船、燈塔、海豚、貓……幾乎都會回應你</dd>
+      <dt>Shift＋拖曳瓶身</dt><dd>搖晃整片海（手機請長按後拖）</dd>
+      <dt>鍵盤</dt><dd>方向鍵環繞、＋／－縮放、1–7 切換視角、R 環轉、H 只看瓶</dd>
+    </dl>
+    <div class="row"><button id="help-ok">開始看</button></div>
+  </div>
+</div>
+
+<div id="engrave" role="dialog" aria-modal="true" aria-labelledby="eng-title">
+  <div class="card">
+    <h3 id="eng-title">刻在銘牌上</h3>
+    <p>主句會刻成大字，副句是底下那行小字。按 Enter 也能刻。</p>
+    <label for="eng1">主句</label><input id="eng1" maxlength="24" autocomplete="off">
+    <label for="eng2">副句</label><input id="eng2" maxlength="48" autocomplete="off">
+    <div class="row"><button id="eng-cancel">先不要</button><button id="eng-ok">刻上去</button></div>
+  </div>
+</div>
+
+<div id="intro">
+  <div class="gate">
+    <h2>一瓶，遠方</h2>
+    <p>somewhere at sea, latitude unknown</p>
+    <div class="btns"><button id="start-sound">開聲音起航</button><button id="start-quiet">靜靜地看</button></div>
+  </div>
+  <div class="line" id="il1">北緯不詳，一片沒有名字的海。<small>Somewhere at sea.</small></div>
+  <div class="line" id="il2">燈塔守著一艘船，船守著一陣風。<small>A lighthouse keeps a ship; the ship keeps the wind.</small></div>
+  <div class="line" id="il3">而這整片海，只有一只瓶子那麼大。<small>The whole sea fits in a bottle.</small></div>
+  <button id="skip">跳過</button>
+</div>
+
+<div id="loading"><div class="in"><span class="bar"><span id="load-bar"></span></span><span id="load-text">準備中…</span></div></div>
+<div id="fallback"><p>這個瓶子需要 WebGL 2 才能打開。請用新版 Chrome 開啟，並確認硬體加速已啟用。</p></div>
+
+<script id="asset-data" type="application/json">/*__ASSETS__*/</script>
+<script>/*__APP__*/</script>
+</body>
+</html>
